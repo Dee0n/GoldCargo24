@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/parcels — get current user's parcels
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id");
@@ -30,7 +29,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/parcels — add track number to user's parcels
 export async function POST(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id");

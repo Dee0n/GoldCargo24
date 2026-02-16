@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { importXlsx } from "@/lib/xlsx/importer";
 
-// POST /api/tracks/upload — upload XLSX file (admin)
 export async function POST(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");

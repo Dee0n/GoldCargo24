@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateTrackSchema } from "@/lib/validations/track";
 
-// GET /api/tracks/[id]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
@@ -27,7 +26,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PUT /api/tracks/[id]
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");
@@ -44,7 +42,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "Трек не найден" }, { status: 404 });
     }
 
-    // If status changed, add history
     if (data.statusId && data.statusId !== existing.statusId) {
       await prisma.trackHistory.create({
         data: { trackId: id, statusId: data.statusId },
@@ -73,7 +70,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE /api/tracks/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// PUT /api/statuses/[id]
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");
@@ -28,7 +27,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE /api/statuses/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");
@@ -36,7 +34,6 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const { id } = await params;
 
-    // Check if any tracks use this status
     const trackCount = await prisma.track.count({ where: { statusId: id } });
     if (trackCount > 0) {
       return NextResponse.json({ error: `Нельзя удалить: ${trackCount} треков используют этот статус` }, { status: 409 });

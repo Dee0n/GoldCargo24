@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { updateUserSchema } from "@/lib/validations/user";
 import { hashPassword } from "@/lib/auth/password";
 
-// GET /api/users/[id]
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");
@@ -30,7 +29,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PUT /api/users/[id]
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");
@@ -69,7 +67,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE /api/users/[id]
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const role = request.headers.get("x-user-role");

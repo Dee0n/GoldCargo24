@@ -1,7 +1,6 @@
 import * as XLSX from "xlsx";
 import { prisma } from "@/lib/prisma";
 
-// Chinese header mappings
 const HEADER_MAP: Record<string, string> = {
   "快递单号": "trackNumber",
   "总单号": "batchNumber",
@@ -33,7 +32,6 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
   const sheet = workbook.Sheets[sheetName];
   const rawRows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
 
-  // Map Chinese headers to English
   const rows: XlsxRow[] = rawRows.map((row) => {
     const mapped: Record<string, string> = {};
     for (const [key, value] of Object.entries(row)) {
@@ -43,7 +41,6 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
     return mapped as unknown as XlsxRow;
   });
 
-  // Load all statuses for Chinese name mapping
   const statuses = await prisma.status.findMany();
   type StatusRecord = (typeof statuses)[0];
   const statusByChineseName = new Map<string, StatusRecord>(
@@ -59,7 +56,6 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
   let updated = 0;
   const errors: string[] = [];
 
-  // Process in batches
   const BATCH_SIZE = 50;
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
     const batch = rows.slice(i, i + BATCH_SIZE);
@@ -72,12 +68,10 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
             continue;
           }
 
-          // Resolve status from Chinese name
           const resolvedStatus = row.status
             ? statusByChineseName.get(row.status) || defaultStatus
             : defaultStatus;
 
-          // Upsert batch
           let batchRecord = null;
           if (row.batchNumber) {
             batchRecord = await tx.batch.upsert({
@@ -87,13 +81,11 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
             });
           }
 
-          // Check if track exists
           const existingTrack = await tx.track.findUnique({
             where: { trackNumber: row.trackNumber },
           });
 
           if (existingTrack) {
-            // Only update if status changed
             if (existingTrack.statusId !== resolvedStatus.id) {
               await tx.track.update({
                 where: { id: existingTrack.id },
@@ -112,7 +104,6 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
             }
             updated++;
           } else {
-            // Create new track
             const newTrack = await tx.track.create({
               data: {
                 trackNumber: row.trackNumber,
@@ -130,7 +121,6 @@ export async function importXlsx(buffer: Buffer): Promise<ImportResult> {
             created++;
           }
 
-          // Auto-link to user by clientCode
           if (row.clientCode) {
             const user = await tx.user.findUnique({
               where: { clientCode: row.clientCode },

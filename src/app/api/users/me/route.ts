@@ -4,7 +4,6 @@ import { updateProfileSchema } from "@/lib/validations/user";
 import { hashPassword } from "@/lib/auth/password";
 import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 
-// GET /api/users/me — current user profile
 export async function GET(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id");
@@ -23,7 +22,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT /api/users/me — update profile
 export async function PUT(request: NextRequest) {
   try {
     const userId = request.headers.get("x-user-id");
@@ -32,13 +30,11 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const data = updateProfileSchema.parse(body);
 
-    // Build update object
     const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.surname !== undefined) updateData.surname = data.surname;
     if (data.email !== undefined) updateData.email = data.email || null;
 
-    // Phone change — check uniqueness
     if (data.phone) {
       const existing = await prisma.user.findUnique({ where: { phone: data.phone } });
       if (existing && existing.id !== userId) {
@@ -47,7 +43,6 @@ export async function PUT(request: NextRequest) {
       updateData.phone = data.phone;
     }
 
-    // Password change — hash
     if (data.password) {
       updateData.password = await hashPassword(data.password);
     }
@@ -58,7 +53,6 @@ export async function PUT(request: NextRequest) {
       select: { id: true, phone: true, name: true, surname: true, email: true, role: true, clientCode: true, createdAt: true },
     });
 
-    // If phone changed, re-issue tokens with new phone
     if (data.phone) {
       const tokenPayload = { userId: user.id, role: user.role, phone: user.phone };
       const accessToken = await signAccessToken(tokenPayload);

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/stats — admin dashboard stats
 export async function GET(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");

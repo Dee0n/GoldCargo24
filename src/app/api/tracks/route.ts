@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { createTrackSchema } from "@/lib/validations/track";
 
-// GET /api/tracks — list all tracks (admin) or user's tracks
 export async function GET(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");
@@ -51,7 +50,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/tracks — create track (admin)
 export async function POST(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");
@@ -92,7 +90,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/tracks — bulk delete (admin)
 export async function DELETE(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");
@@ -116,7 +113,6 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// PATCH /api/tracks — bulk status update (admin)
 export async function PATCH(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");
@@ -136,7 +132,6 @@ export async function PATCH(request: NextRequest) {
         where: { id: { in: trackIds } },
         data: { statusId },
       });
-      // Add history entries
       const historyData = trackIds.map((trackId: string) => ({
         trackId,
         statusId,

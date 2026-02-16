@@ -10,18 +10,15 @@ const CLIENT_PATHS = ["/dashboard", "/parcels", "/archive", "/profile", "/track"
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Public paths — always allowed
   if (pathname === "/" || pathname === "/login" || pathname === "/register") return NextResponse.next();
   if (pathname.startsWith("/api/auth/")) return NextResponse.next();
   if (pathname.startsWith("/api/tracks/search")) return NextResponse.next();
   if (pathname === "/api/settings" && request.method === "GET") return NextResponse.next();
 
-  // Static / public assets
   if (pathname.startsWith("/_next") || pathname.startsWith("/favicon") || pathname.includes(".")) {
     return NextResponse.next();
   }
 
-  // Check for auth token
   const token = request.cookies.get("access_token")?.value ||
     request.headers.get("authorization")?.replace("Bearer ", "");
 
@@ -36,7 +33,6 @@ export async function proxy(request: NextRequest) {
     const { payload } = await jwtVerify(token, JWT_SECRET);
     const role = payload.role as string;
 
-    // Admin routes require ADMIN role
     if (ADMIN_PATHS.some((p) => pathname.startsWith(p))) {
       if (role !== "ADMIN") {
         if (pathname.startsWith("/api/")) {
@@ -46,7 +42,6 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    // Add user info to headers for API routes
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set("x-user-id", payload.userId as string);
     requestHeaders.set("x-user-role", role);
@@ -54,7 +49,6 @@ export async function proxy(request: NextRequest) {
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   } catch {
-    // Token invalid/expired
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

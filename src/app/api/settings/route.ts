@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/settings — public
 export async function GET() {
   try {
     let settings = await prisma.settings.findUnique({ where: { id: "main" } });
@@ -15,7 +14,6 @@ export async function GET() {
   }
 }
 
-// PUT /api/settings — admin only
 export async function PUT(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");

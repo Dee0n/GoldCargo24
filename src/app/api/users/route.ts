@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { registerSchema } from "@/lib/validations/auth";
 
-// GET /api/users — list all users (admin)
 export async function GET(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");
@@ -53,7 +52,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/users — create user (admin)
 export async function POST(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");

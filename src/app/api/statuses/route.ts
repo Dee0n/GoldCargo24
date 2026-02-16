@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// GET /api/statuses — list all statuses (public for display, admin for management)
 export async function GET() {
   try {
     const statuses = await prisma.status.findMany({ orderBy: { order: "asc" } });
@@ -12,7 +11,6 @@ export async function GET() {
   }
 }
 
-// POST /api/statuses — create status (admin)
 export async function POST(request: NextRequest) {
   try {
     const role = request.headers.get("x-user-role");

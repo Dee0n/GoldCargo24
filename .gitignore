@@ -42,3 +42,8 @@ next-env.d.ts
 
 # Prisma generated (v7 legacy)
 /src/generated/
+
+# misc generated
+.claude/
+nul
+push_to_github.bat
