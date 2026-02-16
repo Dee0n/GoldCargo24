@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  ADMIN
+}
+
+model User {
+  id         String   @id @default(cuid())
+  phone      String   @unique
+  password   String
+  name       String
+  surname    String
+  email      String?
+  role       Role     @default(CLIENT)
+  clientCode String?  @unique
+  isBlocked  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  parcels    Parcel[]
+
+  @@index([phone])
+  @@index([clientCode])
+}
+
+model Status {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  chineseName String?
+  order       Int            @unique
+  color       String         @default("#6B7280")
+  isFinal     Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  tracks      Track[]
+  history     TrackHistory[]
+
+  @@index([chineseName])
+  @@index([order])
+}
+
+model Batch {
+  id          String   @id @default(cuid())
+  batchNumber String   @unique
+  createdAt   DateTime @default(now())
+  tracks      Track[]
+}
+
+model Track {
+  id          String         @id @default(cuid())
+  trackNumber String         @unique
+  statusId    String
+  status      Status         @relation(fields: [statusId], references: [id])
+  batchId     String?
+  batch       Batch?         @relation(fields: [batchId], references: [id])
+  weight      Float?
+  description String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  history     TrackHistory[]
+  parcels     Parcel[]
+
+  @@index([trackNumber])
+  @@index([statusId])
+  @@index([batchId])
+}
+
+model TrackHistory {
+  id       String   @id @default(cuid())
+  trackId  String
+  track    Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  statusId String
+  status   Status   @relation(fields: [statusId], references: [id])
+  date     DateTime @default(now())
+  note     String?
+
+  @@index([trackId])
+  @@index([date])
+}
+
+model Parcel {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trackId    String
+  track      Track    @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, trackId])
+  @@index([userId])
+  @@index([trackId])
+}
+
+model Settings {
+  id               String @id @default("main")
+  exchangeRate     Float  @default(495)
+  pricePerKg       Float  @default(3.5)
+  chinaAddress     String @default("")
+  warehouseAddress String @default("")
+  whatsappNumber   String @default("")
+  instagramLink    String @default("")
+  aboutText        String @default("")
+  prohibitedItems  String @default("")
+  instructionText  String @default("")
+}

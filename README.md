@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LolaGoldCargo — Система отслеживания посылок
 
-## Getting Started
+Карго-компания: доставка товаров с китайских маркетплейсов в Казахстан.
 
-First, run the development server:
+## Стек технологий
+
+- **Next.js 15** (App Router, TypeScript)
+- **PostgreSQL** + **Prisma ORM v5**
+- **Tailwind CSS** + **shadcn/ui**
+- **JWT авторизация** (jose) — access (15 мин) + refresh (30 дней)
+- **xlsx** — парсинг Excel файлов с китайского склада
+- **Docker Compose** — деплой на VPS
+
+## Быстрый старт (локально)
+
+### 1. Установить зависимости
+
+```bash
+npm install
+```
+
+### 2. Настроить переменные окружения
+
+```bash
+cp .env.example .env
+# Отредактируйте .env — укажите DATABASE_URL и JWT_SECRET
+```
+
+### 3. Запустить PostgreSQL (через Docker)
+
+```bash
+docker run -d \
+  --name cargo_postgres \
+  -e POSTGRES_DB=lolagoldcargo \
+  -e POSTGRES_USER=cargo \
+  -e POSTGRES_PASSWORD=cargo_secret \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+### 4. Инициализировать базу данных
+
+```bash
+npm run setup
+# Выполняет: prisma generate + migrate deploy + seed
+# Создаёт: admin (phone: 77001234567, password: admin123) + статусы + настройки
+```
+
+### 5. Запустить сервер разработки
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Открыть [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Скрипты
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Команда | Описание |
+|---------|----------|
+| `npm run dev` | Сервер разработки |
+| `npm run build` | Сборка для продакшн |
+| `npm run start` | Запуск продакшн сборки |
+| `npm run db:generate` | Генерация Prisma клиента |
+| `npm run db:migrate` | Создать и применить миграцию (dev) |
+| `npm run db:push` | Синхронизировать схему без миграций |
+| `npm run db:seed` | Сидировать базу (admin + статусы + настройки) |
+| `npm run db:studio` | Открыть Prisma Studio |
+| `npm run setup` | Полная инициализация (generate + migrate + seed) |
 
-## Learn More
+## Деплой на VPS (Docker Compose)
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Настроить .env на сервере
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cp .env.example .env
+# Обязательно измените:
+# DB_PASSWORD=ваш_безопасный_пароль
+# JWT_SECRET=очень_длинная_случайная_строка_64_символа
+# JWT_REFRESH_SECRET=ещё_одна_длинная_случайная_строка
+# ADMIN_PHONE=ваш_номер_телефона
+# ADMIN_PASSWORD=ваш_безопасный_пароль
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 2. Получить SSL сертификат
 
-## Deploy on Vercel
+```bash
+apt install certbot
+certbot certonly --standalone -d goldcargo24.kz -d www.goldcargo24.kz
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Обновить nginx.conf
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Замените `goldcargo24.kz` на ваш домен в `nginx.conf`.
+
+### 4. Запустить
+
+```bash
+docker compose up -d
+```
+
+### 5. Проверить логи
+
+```bash
+docker compose logs -f app
+```
+
+## Структура проекта
+
+```
+src/
+├── app/
+│   ├── (auth)/          # Страницы входа и регистрации
+│   ├── (client)/        # Клиентские страницы (посылки, профиль)
+│   ├── (admin)/         # Админ панель
+│   └── api/             # API роуты
+├── lib/
+│   ├── prisma.ts        # Prisma клиент
+│   ├── auth/            # JWT, пароли, middleware
+│   ├── xlsx/            # Импортёр XLSX файлов
+│   └── validations/     # Zod схемы
+└── components/
+    ├── ui/              # shadcn/ui компоненты
+    ├── shared/          # StatusBadge, TrackTimeline
+    ├── layout/          # Навигация, сайдбар
+    └── providers/       # AuthProvider
+```
+
+## Формат XLSX файла
+
+Для загрузки файлов с китайского склада требуются колонки:
+
+| Китайское название | Описание |
+|--------------------|----------|
+| 快递单号 | Трек-номер |
+| 总单号 | Номер партии |
+| 客户姓名 | Код клиента |
+| 添加时间 | Дата добавления |
+| 更新时间 | Дата обновления |
+| 状态 | Статус (на китайском) |
+
+Статусы автоматически маппируются через поле `chineseName` в настройках статусов.
+
+## Дефолтные данные (после seed)
+
+**Админ:** телефон `77001234567`, пароль `admin123`
+
+**Статусы:**
+- Ожидает (серый)
+- На складе в Китае / 已入库 (жёлтый)
+- Отправлено из Китая / 已出库 (синий)
+- В пути / 运输中 (фиолетовый)
+- На складе в Казахстане / 已到达 (зелёный)
+- Готов к выдаче / 待取件 (бирюзовый)
+- Выдан / 已签收 (ярко-зелёный) ✓ финальный
