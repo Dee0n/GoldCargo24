@@ -3,9 +3,29 @@ import { prisma } from "@/lib/prisma";
 import { comparePassword } from "@/lib/auth/password";
 import { signAccessToken, signRefreshToken } from "@/lib/auth/jwt";
 import { loginSchema } from "@/lib/validations/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+
+// 10 попыток за 15 минут с одного IP
+const RATE_LIMIT = { limit: 10, windowMs: 15 * 60 * 1000 };
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = getClientIp(request);
+    const rl = checkRateLimit(`login:${ip}`, RATE_LIMIT);
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Слишком много попыток. Попробуйте через 15 минут." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+            "X-RateLimit-Limit": String(RATE_LIMIT.limit),
+            "X-RateLimit-Remaining": "0",
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const data = loginSchema.parse(body);
 

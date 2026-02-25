@@ -13,7 +13,7 @@ interface UserDetail {
   role: string; clientCode: string | null; isBlocked: boolean; createdAt: string;
   parcels: {
     id: string; isArchived: boolean; createdAt: string;
-    track: { id: string; trackNumber: string; weight: number | null; status: { name: string; color: string }; updatedAt: string };
+    track: { id: string; trackNumber: string; status: { name: string; color: string }; updatedAt: string };
   }[];
 }
 
@@ -71,7 +71,6 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
                 <div key={p.id} className="flex items-center justify-between p-2 border rounded-lg">
                   <code className="text-xs font-mono">{p.track.trackNumber}</code>
                   <div className="flex items-center gap-2">
-                    {p.track.weight && <span className="text-xs text-muted-foreground">{p.track.weight} кг</span>}
                     <StatusBadge name={p.track.status.name} color={p.track.status.color} />
                   </div>
                 </div>

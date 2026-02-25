@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
-import { registerSchema } from "@/lib/validations/auth";
+import { createUserSchema } from "@/lib/validations/user";
 
 export async function GET(request: NextRequest) {
   try {
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const body = await request.json();
-    const data = registerSchema.parse(body);
+    const data = createUserSchema.parse(body);
 
     const existing = await prisma.user.findUnique({ where: { phone: data.phone } });
     if (existing) {
@@ -71,10 +71,10 @@ export async function POST(request: NextRequest) {
         phone: data.phone,
         password: hashedPassword,
         name: data.name,
-        surname: data.surname,
+        surname: data.surname || "",
         email: data.email || null,
-        role: body.role || "CLIENT",
-        clientCode: body.clientCode || null,
+        role: data.role ?? "CLIENT",
+        clientCode: data.clientCode ?? null,
       },
       select: { id: true, phone: true, name: true, surname: true, email: true, role: true, clientCode: true, isBlocked: true, createdAt: true },
     });

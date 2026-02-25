@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { LocaleProvider } from "@/components/providers/locale-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,6 +14,11 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "Gold Cargo",
   description: "Отслеживание грузов из Китая в Казахстан",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -24,12 +30,15 @@ export default function RootLayout({
     <html lang="ru" suppressHydrationWarning>
       <body className={`${geistSans.variable} font-sans antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
+          <LocaleProvider>
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

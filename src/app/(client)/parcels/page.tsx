@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { useLocale } from "@/components/providers/locale-provider";
 import { Package, Plus, Trash2, Archive } from "lucide-react";
 import { toast } from "sonner";
 
@@ -16,13 +17,13 @@ interface Parcel {
   track: {
     id: string;
     trackNumber: string;
-    weight: number | null;
     status: { name: string; color: string };
     updatedAt: string;
   };
 }
 
 export default function ParcelsPage() {
+  const { t, locale } = useLocale();
   const [parcels, setParcels] = useState<Parcel[]>([]);
   const [loading, setLoading] = useState(true);
   const [newTrack, setNewTrack] = useState("");
@@ -51,7 +52,7 @@ export default function ParcelsPage() {
       if (!res.ok) {
         toast.error(data.error);
       } else {
-        toast.success("Посылка добавлена!");
+        toast.success(t.parcels.parcelAdded);
         setNewTrack("");
         fetchParcels();
       }
@@ -68,7 +69,7 @@ export default function ParcelsPage() {
       credentials: "include",
     });
     if (res.ok) {
-      toast.success("Перенесено в архив");
+      toast.success(t.parcels.movedToArchive);
       fetchParcels();
     }
   };
@@ -76,49 +77,48 @@ export default function ParcelsPage() {
   const handleDelete = async (id: string) => {
     const res = await fetch(`/api/parcels/${id}`, { method: "DELETE", credentials: "include" });
     if (res.ok) {
-      toast.success("Удалено");
+      toast.success(t.parcels.deleted);
       fetchParcels();
     }
   };
 
   const activeParcels = parcels.filter((p) => !p.isArchived);
+  const dateLocale = locale === "kz" ? "kk-KZ" : "ru-RU";
 
   return (
     <div className="md:ml-56 space-y-6">
-      <h1 className="text-2xl font-bold">Мои посылки</h1>
+      <h1 className="text-2xl font-bold">{t.parcels.title}</h1>
 
-      {/* Add track */}
       <Card>
-        <CardHeader><CardTitle className="text-base">Добавить трек-номер</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">{t.parcels.addTitle}</CardTitle></CardHeader>
         <CardContent>
           <div className="flex gap-2">
             <Input
-              placeholder="Введите трек-номер..."
+              placeholder={t.parcels.placeholder}
               value={newTrack}
               onChange={(e) => setNewTrack(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             />
             <Button onClick={handleAdd} disabled={adding || !newTrack.trim()}>
               <Plus className="h-4 w-4 mr-1" />
-              {adding ? "..." : "Добавить"}
+              {adding ? t.common.adding : t.common.add}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Parcels list */}
       <Card>
         <CardHeader>
-          <CardTitle>Активные посылки ({activeParcels.length})</CardTitle>
+          <CardTitle>{t.parcels.activeParcels} ({activeParcels.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-center text-muted-foreground py-8">Загрузка...</p>
+            <p className="text-center text-muted-foreground py-8">{t.common.loading}</p>
           ) : activeParcels.length === 0 ? (
             <div className="text-center py-12 space-y-3">
               <Package className="h-16 w-16 text-muted-foreground/20 mx-auto" />
-              <p className="text-muted-foreground">Нет активных посылок</p>
-              <p className="text-sm text-muted-foreground">Введите трек-номер выше чтобы начать отслеживать</p>
+              <p className="text-muted-foreground">{t.parcels.noParcels}</p>
+              <p className="text-sm text-muted-foreground">{t.parcels.noTrackHint}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -130,15 +130,14 @@ export default function ParcelsPage() {
                       <StatusBadge name={parcel.track.status.name} color={parcel.track.status.color} />
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {parcel.track.weight ? `${parcel.track.weight} кг · ` : ""}
-                      Обновлено: {new Date(parcel.track.updatedAt).toLocaleDateString("ru-RU")}
+                      {t.common.updated}: {new Date(parcel.track.updatedAt).toLocaleDateString(dateLocale)}
                     </p>
                   </Link>
                   <div className="flex gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => handleArchive(parcel.id)} title="В архив">
+                    <Button variant="ghost" size="icon" onClick={() => handleArchive(parcel.id)} title={t.parcels.toArchive}>
                       <Archive className="h-4 w-4 text-muted-foreground" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => handleDelete(parcel.id)} title="Удалить">
+                    <Button variant="ghost" size="icon" onClick={() => handleDelete(parcel.id)} title={t.common.delete}>
                       <Trash2 className="h-4 w-4 text-red-400" />
                     </Button>
                   </div>

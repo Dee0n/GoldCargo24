@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const updateStatusSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  chineseName: z.string().max(100).nullable().optional(),
+  order: z.number().int().positive().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
+  isFinal: z.boolean().optional(),
+});
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -7,21 +16,25 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     if (role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const { id } = await params;
-    const data = await request.json();
+    const body = await request.json();
+    const data = updateStatusSchema.parse(body);
 
     const status = await prisma.status.update({
       where: { id },
       data: {
-        ...(data.name && { name: data.name }),
+        ...(data.name !== undefined && { name: data.name }),
         ...(data.chineseName !== undefined && { chineseName: data.chineseName }),
         ...(data.order !== undefined && { order: data.order }),
-        ...(data.color && { color: data.color }),
+        ...(data.color !== undefined && { color: data.color }),
         ...(data.isFinal !== undefined && { isFinal: data.isFinal }),
       },
     });
 
     return NextResponse.json({ status });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Проверьте данные" }, { status: 400 });
+    }
     console.error("Update status error:", error);
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
   }

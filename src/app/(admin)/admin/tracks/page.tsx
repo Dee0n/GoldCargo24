@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 interface Status { id: string; name: string; color: string; order: number }
 interface Track {
-  id: string; trackNumber: string; weight: number | null; description: string | null;
+  id: string; trackNumber: string; description: string | null;
   status: { id: string; name: string; color: string };
   batch: { id: string; batchNumber: string } | null;
   parcels: { user: { id: string; name: string; surname: string; phone: string; clientCode: string | null } }[];
@@ -36,7 +36,7 @@ export default function AdminTracksPage() {
   const [editTrack, setEditTrack] = useState<Track | null>(null);
   const [viewTrack, setViewTrack] = useState<Track & { history?: { id: string; date: string; status: { name: string; color: string }; note: string | null }[] } | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [newTrack, setNewTrack] = useState({ trackNumber: "", statusId: "", weight: "", description: "" });
+  const [newTrack, setNewTrack] = useState({ trackNumber: "", statusId: "", description: "" });
   const LIMIT = 50;
 
   const fetchStatuses = async () => {
@@ -97,7 +97,6 @@ export default function AdminTracksPage() {
       body: JSON.stringify({
         trackNumber: editTrack.trackNumber,
         statusId: editTrack.status.id,
-        weight: editTrack.weight,
         description: editTrack.description,
       }),
       credentials: "include",
@@ -113,7 +112,6 @@ export default function AdminTracksPage() {
       body: JSON.stringify({
         trackNumber: newTrack.trackNumber,
         statusId: newTrack.statusId,
-        weight: newTrack.weight ? parseFloat(newTrack.weight) : undefined,
         description: newTrack.description || undefined,
       }),
       credentials: "include",
@@ -121,7 +119,7 @@ export default function AdminTracksPage() {
     if (r.ok) {
       toast.success("Трек создан");
       setCreateOpen(false);
-      setNewTrack({ trackNumber: "", statusId: "", weight: "", description: "" });
+      setNewTrack({ trackNumber: "", statusId: "", description: "" });
       fetchTracks();
     } else { const d = await r.json(); toast.error(d.error); }
   };
@@ -214,7 +212,6 @@ export default function AdminTracksPage() {
                   <th className="p-3 text-left font-medium text-muted-foreground">Трек-номер</th>
                   <th className="p-3 text-left font-medium text-muted-foreground hidden md:table-cell">Статус</th>
                   <th className="p-3 text-left font-medium text-muted-foreground hidden lg:table-cell">Партия</th>
-                  <th className="p-3 text-left font-medium text-muted-foreground hidden lg:table-cell">Вес</th>
                   <th className="p-3 text-left font-medium text-muted-foreground hidden xl:table-cell">Клиент</th>
                   <th className="p-3 text-left font-medium text-muted-foreground hidden md:table-cell">Дата</th>
                   <th className="p-3 w-28 text-left font-medium text-muted-foreground">Действия</th>
@@ -222,9 +219,9 @@ export default function AdminTracksPage() {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-muted-foreground">Загрузка...</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">Загрузка...</td></tr>
                 ) : tracks.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-muted-foreground">Нет треков</td></tr>
+                  <tr><td colSpan={7} className="py-12 text-center text-muted-foreground">Нет треков</td></tr>
                 ) : (
                   tracks.map((track) => (
                     <tr key={track.id} className="border-b hover:bg-muted/50 transition-colors">
@@ -239,9 +236,6 @@ export default function AdminTracksPage() {
                       </td>
                       <td className="p-3 hidden lg:table-cell">
                         {track.batch ? <code className="text-xs text-muted-foreground">{track.batch.batchNumber}</code> : "—"}
-                      </td>
-                      <td className="p-3 hidden lg:table-cell text-muted-foreground">
-                        {track.weight ? `${track.weight} кг` : "—"}
                       </td>
                       <td className="p-3 hidden xl:table-cell text-muted-foreground text-xs">
                         {track.parcels.map((p) => (
@@ -308,10 +302,6 @@ export default function AdminTracksPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Вес (кг)</Label>
-              <Input type="number" step="0.1" value={newTrack.weight} onChange={(e) => setNewTrack((p) => ({ ...p, weight: e.target.value }))} />
-            </div>
-            <div className="space-y-2">
               <Label>Описание</Label>
               <Input value={newTrack.description} onChange={(e) => setNewTrack((p) => ({ ...p, description: e.target.value }))} />
             </div>
@@ -344,10 +334,6 @@ export default function AdminTracksPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Вес (кг)</Label>
-                <Input type="number" step="0.1" value={editTrack.weight ?? ""} onChange={(e) => setEditTrack((p) => p ? { ...p, weight: e.target.value ? parseFloat(e.target.value) : null } : p)} />
-              </div>
-              <div className="space-y-2">
                 <Label>Описание</Label>
                 <Input value={editTrack.description ?? ""} onChange={(e) => setEditTrack((p) => p ? { ...p, description: e.target.value } : p)} />
               </div>
@@ -370,7 +356,6 @@ export default function AdminTracksPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <StatusBadge name={viewTrack.status.name} color={viewTrack.status.color} />
-                {viewTrack.weight && <Badge variant="outline">{viewTrack.weight} кг</Badge>}
                 {viewTrack.batch && <Badge variant="outline">Партия: {viewTrack.batch.batchNumber}</Badge>}
               </div>
               {viewTrack.parcels.length > 0 && (

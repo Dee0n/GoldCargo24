@@ -1,8 +1,11 @@
 import { SignJWT, jwtVerify } from "jose";
 import { Role } from "@prisma/client";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || "fallback-secret");
-const JWT_REFRESH_SECRET = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET || "fallback-refresh-secret");
+if (!process.env.JWT_SECRET) throw new Error("JWT_SECRET is not set");
+if (!process.env.JWT_REFRESH_SECRET) throw new Error("JWT_REFRESH_SECRET is not set");
+
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
+const JWT_REFRESH_SECRET = new TextEncoder().encode(process.env.JWT_REFRESH_SECRET);
 
 export interface JWTPayload {
   userId: string;

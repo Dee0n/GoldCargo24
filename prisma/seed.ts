@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Seed admin user
   const adminPhone = process.env.ADMIN_PHONE || "77001234567";
   const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
   const hashedPassword = await bcrypt.hash(adminPassword, 12);
@@ -23,7 +22,6 @@ async function main() {
 
   console.log(`Admin user created: ${adminPhone}`);
 
-  // Seed statuses
   const statuses = [
     { name: "Ожидает", chineseName: null, order: 1, color: "#9CA3AF", isFinal: false },
     { name: "На складе в Китае", chineseName: "已入库", order: 2, color: "#F59E0B", isFinal: false },
@@ -44,7 +42,6 @@ async function main() {
 
   console.log(`${statuses.length} statuses created`);
 
-  // Seed settings
   await prisma.settings.upsert({
     where: { id: "main" },
     update: {},

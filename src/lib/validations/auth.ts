@@ -2,14 +2,14 @@ import { z } from "zod";
 
 export const loginSchema = z.object({
   phone: z.string().min(10, "Введите номер телефона").max(15),
-  password: z.string().min(4, "Минимум 4 символа"),
+  password: z.string().min(1, "Введите пароль"),
 });
 
 export const registerSchema = z.object({
   phone: z.string().min(10, "Введите номер телефона").max(15),
-  password: z.string().min(4, "Минимум 4 символа"),
-  name: z.string().min(1, "Введите имя"),
-  surname: z.string().optional().or(z.literal("")),
+  password: z.string().min(8, "Минимум 8 символов"),
+  name: z.string().min(1, "Введите имя").max(100),
+  surname: z.string().max(100).optional().or(z.literal("")),
   email: z.string().email("Некорректный email").optional().or(z.literal("")),
 });
 

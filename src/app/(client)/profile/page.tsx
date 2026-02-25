@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLocale } from "@/components/providers/locale-provider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
+  const { t } = useLocale();
   const [form, setForm] = useState({
     name: user?.name || "",
     surname: user?.surname || "",
@@ -39,7 +41,7 @@ export default function ProfilePage() {
       });
       if (res.ok) {
         await refreshUser();
-        toast.success("Профиль обновлён");
+        toast.success(t.profile.profileUpdated);
       } else {
         const data = await res.json();
         toast.error(data.error);
@@ -51,11 +53,11 @@ export default function ProfilePage() {
 
   const handlePasswordChange = async () => {
     if (passwordForm.password.length < 4) {
-      toast.error("Пароль должен быть не менее 4 символов");
+      toast.error(t.profile.passwordMinError);
       return;
     }
     if (passwordForm.password !== passwordForm.confirm) {
-      toast.error("Пароли не совпадают");
+      toast.error(t.profile.passwordMismatch);
       return;
     }
     setSavingPassword(true);
@@ -67,7 +69,7 @@ export default function ProfilePage() {
         credentials: "include",
       });
       if (res.ok) {
-        toast.success("Пароль изменён");
+        toast.success(t.profile.passwordChanged);
         setPasswordForm({ password: "", confirm: "" });
       } else {
         const data = await res.json();
@@ -80,32 +82,31 @@ export default function ProfilePage() {
 
   return (
     <div className="md:ml-56 max-w-lg space-y-6">
-      <h1 className="text-2xl font-bold">Мой профиль</h1>
+      <h1 className="text-2xl font-bold">{t.profile.title}</h1>
 
-      {/* Personal info */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" /> Личные данные
+            <User className="h-5 w-5" /> {t.profile.personalData}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Имя</Label>
+              <Label>{t.auth.name}</Label>
               <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} />
             </div>
             <div className="space-y-2">
-              <Label>Фамилия <span className="text-muted-foreground text-xs">(необязательно)</span></Label>
+              <Label>{t.auth.surname} <span className="text-muted-foreground text-xs">{t.auth.surnameOptional}</span></Label>
               <Input value={form.surname} onChange={(e) => setForm((p) => ({ ...p, surname: e.target.value }))} />
             </div>
           </div>
           <div className="space-y-2">
-            <Label className="flex items-center gap-1"><Mail className="h-3 w-3" /> Email <span className="text-muted-foreground text-xs">(необязательно)</span></Label>
+            <Label className="flex items-center gap-1"><Mail className="h-3 w-3" /> {t.auth.email} <span className="text-muted-foreground text-xs">{t.auth.emailOptional}</span></Label>
             <Input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
           </div>
           <div className="space-y-2">
-            <Label className="flex items-center gap-1"><Phone className="h-3 w-3" /> Телефон</Label>
+            <Label className="flex items-center gap-1"><Phone className="h-3 w-3" /> {t.auth.phone}</Label>
             <Input type="tel" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
           </div>
 
@@ -114,33 +115,32 @@ export default function ProfilePage() {
               <Separator />
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Hash className="h-4 w-4" />
-                <span>Код клиента: <strong className="text-foreground">{user.clientCode}</strong></span>
+                <span>{t.dashboard.clientCode}: <strong className="text-foreground">{user.clientCode}</strong></span>
               </div>
             </>
           )}
 
           <Button onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? "Сохранение..." : "Сохранить"}
+            {saving ? t.common.saving : t.common.save}
           </Button>
         </CardContent>
       </Card>
 
-      {/* Password change */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" /> Сменить пароль
+            <Lock className="h-5 w-5" /> {t.profile.changePassword}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label>Новый пароль</Label>
+            <Label>{t.profile.newPassword}</Label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
                 value={passwordForm.password}
                 onChange={(e) => setPasswordForm((p) => ({ ...p, password: e.target.value }))}
-                placeholder="Минимум 4 символа"
+                placeholder={t.profile.minChars}
               />
               <button
                 type="button"
@@ -152,16 +152,16 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Подтвердите пароль</Label>
+            <Label>{t.profile.confirmPassword}</Label>
             <Input
               type="password"
               value={passwordForm.confirm}
               onChange={(e) => setPasswordForm((p) => ({ ...p, confirm: e.target.value }))}
-              placeholder="Повторите пароль"
+              placeholder={t.profile.repeatPassword}
             />
           </div>
           <Button onClick={handlePasswordChange} disabled={savingPassword || !passwordForm.password} variant="outline" className="w-full">
-            {savingPassword ? "Изменение..." : "Изменить пароль"}
+            {savingPassword ? t.profile.changingPassword : t.profile.changePasswordBtn}
           </Button>
         </CardContent>
       </Card>

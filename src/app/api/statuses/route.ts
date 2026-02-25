@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const createStatusSchema = z.object({
+  name: z.string().min(1, "Название обязательно").max(100),
+  chineseName: z.string().max(100).nullable().optional(),
+  order: z.number().int().positive("Порядок должен быть положительным числом"),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Некорректный цвет").optional().default("#6B7280"),
+  isFinal: z.boolean().optional().default(false),
+});
 
 export async function GET() {
   try {
@@ -16,13 +25,17 @@ export async function POST(request: NextRequest) {
     const role = request.headers.get("x-user-role");
     if (role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const { name, chineseName, order, color, isFinal } = await request.json();
-    if (!name || order === undefined) {
-      return NextResponse.json({ error: "Название и порядок обязательны" }, { status: 400 });
-    }
+    const body = await request.json();
+    const data = createStatusSchema.parse(body);
 
     const status = await prisma.status.create({
-      data: { name, chineseName: chineseName || null, order, color: color || "#6B7280", isFinal: isFinal || false },
+      data: {
+        name: data.name,
+        chineseName: data.chineseName ?? null,
+        order: data.order,
+        color: data.color ?? "#6B7280",
+        isFinal: data.isFinal ?? false,
+      },
     });
 
     return NextResponse.json({ status }, { status: 201 });

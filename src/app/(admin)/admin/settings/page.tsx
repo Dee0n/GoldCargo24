@@ -11,7 +11,7 @@ import { Save, DollarSign, MapPin, Phone, Info, ShieldAlert, BookOpen, Instagram
 import { toast } from "sonner";
 
 interface Settings {
-  exchangeRate: number; pricePerKg: number; chinaAddress: string;
+  exchangeRate: number; chinaAddress: string;
   warehouseAddress: string; whatsappNumber: string; instagramLink: string;
   aboutText: string; prohibitedItems: string; instructionText: string;
 }
@@ -73,7 +73,7 @@ export default function AdminSettingsPage() {
             <DollarSign className="h-4 w-4 text-amber-500" /> Финансы
           </CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label>Курс юаня к тенге (¥ → ₸)</Label>
             <Input
@@ -83,16 +83,6 @@ export default function AdminSettingsPage() {
               onChange={(e) => update("exchangeRate", parseFloat(e.target.value) || 0)}
             />
             <p className="text-xs text-muted-foreground">1 юань = {settings.exchangeRate} ₸</p>
-          </div>
-          <div className="space-y-2">
-            <Label>Тариф ($ за кг)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={settings.pricePerKg ?? ""}
-              onChange={(e) => update("pricePerKg", parseFloat(e.target.value) || 0)}
-            />
-            <p className="text-xs text-muted-foreground">{settings.pricePerKg}$ за 1 кг</p>
           </div>
         </CardContent>
       </Card>

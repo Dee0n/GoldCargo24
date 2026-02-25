@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { useLocale } from "@/components/providers/locale-provider";
 import { Users, Package, TrendingUp, Clock } from "lucide-react";
 
 interface Stats {
@@ -14,6 +15,7 @@ interface Stats {
 }
 
 export default function AdminDashboardPage() {
+  const { t } = useLocale();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,14 +26,13 @@ export default function AdminDashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-center py-16 text-muted-foreground">Загрузка...</div>;
-  if (!stats) return <div className="text-center py-16 text-red-400">Ошибка загрузки</div>;
+  if (loading) return <div className="text-center py-16 text-muted-foreground">{t.common.loading}</div>;
+  if (!stats) return <div className="text-center py-16 text-red-400">{t.common.serverError}</div>;
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Дашборд</h1>
+      <h1 className="text-2xl font-bold">{t.nav.dashboard}</h1>
 
-      {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
@@ -41,7 +42,7 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.totalUsers}</p>
-                <p className="text-sm text-muted-foreground">Клиентов</p>
+                <p className="text-sm text-muted-foreground">{t.admin.totalUsers}</p>
               </div>
             </div>
           </CardContent>
@@ -54,7 +55,7 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.totalTracks}</p>
-                <p className="text-sm text-muted-foreground">Треков</p>
+                <p className="text-sm text-muted-foreground">{t.admin.totalTracks}</p>
               </div>
             </div>
           </CardContent>
@@ -67,7 +68,7 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.totalParcels}</p>
-                <p className="text-sm text-muted-foreground">Отслеживают</p>
+                <p className="text-sm text-muted-foreground">{t.nav.parcels}</p>
               </div>
             </div>
           </CardContent>
@@ -80,7 +81,7 @@ export default function AdminDashboardPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{stats.statusCounts.length}</p>
-                <p className="text-sm text-muted-foreground">Статусов</p>
+                <p className="text-sm text-muted-foreground">{t.admin.totalStatuses}</p>
               </div>
             </div>
           </CardContent>
@@ -88,12 +89,11 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Status distribution */}
         <Card>
-          <CardHeader><CardTitle>Треки по статусам</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t.nav.statuses}</CardTitle></CardHeader>
           <CardContent>
             {stats.statusCounts.length === 0 ? (
-              <p className="text-muted-foreground text-sm">Нет данных</p>
+              <p className="text-muted-foreground text-sm">{t.common.noData}</p>
             ) : (
               <div className="space-y-3">
                 {stats.statusCounts
@@ -123,12 +123,11 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Recent tracks */}
         <Card>
-          <CardHeader><CardTitle>Последние треки</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t.admin.recentTracks}</CardTitle></CardHeader>
           <CardContent>
             {stats.recentTracks.length === 0 ? (
-              <p className="text-muted-foreground text-sm">Нет треков</p>
+              <p className="text-muted-foreground text-sm">{t.common.noData}</p>
             ) : (
               <div className="space-y-2">
                 {stats.recentTracks.map((track) => (

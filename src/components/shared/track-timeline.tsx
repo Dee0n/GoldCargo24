@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale } from "@/components/providers/locale-provider";
+
 interface HistoryItem {
   id: string;
   date: string;
@@ -8,6 +10,7 @@ interface HistoryItem {
 }
 
 export function TrackTimeline({ history }: { history: HistoryItem[] }) {
+  const { locale } = useLocale();
   return (
     <div className="space-y-4">
       {history.map((item, index) => (
@@ -26,7 +29,7 @@ export function TrackTimeline({ history }: { history: HistoryItem[] }) {
               {item.status.name}
             </p>
             <p className="text-xs text-gray-500">
-              {new Date(item.date).toLocaleString("ru-RU")}
+              {new Date(item.date).toLocaleString(locale === "kz" ? "kk-KZ" : "ru-RU")}
             </p>
             {item.note && <p className="text-xs text-gray-400 mt-1">{item.note}</p>}
           </div>

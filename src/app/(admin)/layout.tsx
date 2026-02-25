@@ -3,28 +3,31 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useLocale } from "@/components/providers/locale-provider";
 import { useEffect } from "react";
 import {
   LayoutDashboard, Package, Upload, Users, Tag, Settings, LogOut, Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { useState } from "react";
-
-const navItems = [
-  { href: "/admin", label: "Дашборд", icon: LayoutDashboard, exact: true },
-  { href: "/admin/upload", label: "Загрузка XLSX", icon: Upload },
-  { href: "/admin/tracks", label: "Треки", icon: Package },
-  { href: "/admin/users", label: "Пользователи", icon: Users },
-  { href: "/admin/statuses", label: "Статусы", icon: Tag },
-  { href: "/admin/settings", label: "Настройки", icon: Settings },
-];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, logout, loading } = useAuth();
+  const { t } = useLocale();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navItems = [
+    { href: "/admin", label: t.nav.dashboard, icon: LayoutDashboard, exact: true },
+    { href: "/admin/upload", label: t.nav.uploadXlsx, icon: Upload },
+    { href: "/admin/tracks", label: t.nav.tracks, icon: Package },
+    { href: "/admin/users", label: t.nav.users, icon: Users },
+    { href: "/admin/statuses", label: t.nav.statuses, icon: Tag },
+    { href: "/admin/settings", label: t.nav.settings, icon: Settings },
+  ];
 
   useEffect(() => {
     if (!loading && user && user.role !== "ADMIN") {
@@ -32,7 +35,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [user, loading, router]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Загрузка...</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t.common.loading}</div>;
 
   const isActive = (item: { href: string; exact?: boolean }) =>
     item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
@@ -46,7 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div>
             <p className="font-bold text-sm text-white">GOLD CARGO</p>
-            <p className="text-xs text-gray-400">Админ панель</p>
+            <p className="text-xs text-gray-400">{t.admin.panel}</p>
           </div>
         </div>
       </div>
@@ -61,8 +64,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               href={item.href}
               onClick={() => setSidebarOpen(false)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${active
-                  ? "bg-amber-500 text-white"
-                  : "text-gray-300 hover:bg-white/10 hover:text-white"
+                ? "bg-amber-500 text-white"
+                : "text-gray-300 hover:bg-white/10 hover:text-white"
                 }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -75,7 +78,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="px-4 py-4 border-t border-white/10 space-y-2">
         <p className="text-xs text-gray-400">{user?.name} {user?.surname}</p>
         <Button variant="ghost" size="sm" onClick={logout} className="w-full justify-start text-gray-400 hover:text-white px-0">
-          <LogOut className="h-4 w-4 mr-2" /> Выйти
+          <LogOut className="h-4 w-4 mr-2" /> {t.common.logout}
         </Button>
       </div>
     </div>
@@ -83,12 +86,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Desktop sidebar */}
       <aside className="hidden md:flex w-60 bg-gray-900 dark:bg-gray-950 flex-col shrink-0 fixed h-full z-30">
         <Sidebar />
       </aside>
 
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
@@ -98,20 +99,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       )}
 
-      {/* Content */}
       <div className="flex-1 md:ml-60 flex flex-col min-h-screen">
-        {/* Top bar */}
         <header className="bg-background border-b px-4 py-3 flex items-center gap-3 sticky top-0 z-20">
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(true)}>
             <Menu className="h-5 w-5" />
           </Button>
           <h1 className="font-semibold text-foreground flex-1">
-            {navItems.find((i) => isActive(i))?.label || "Админ"}
+            {navItems.find((i) => isActive(i))?.label || t.nav.admin}
           </h1>
+          <LocaleSwitcher />
           <ThemeToggle />
           <Link href="/dashboard">
             <Button variant="outline" size="sm" className="text-muted-foreground">
-              На сайт
+              {t.common.toSite}
             </Button>
           </Link>
         </header>

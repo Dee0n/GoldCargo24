@@ -1,5 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+const updateSettingsSchema = z.object({
+  exchangeRate: z.number().positive().finite().optional(),
+  pricePerKg: z.number().positive().finite().optional(),
+  chinaAddress: z.string().max(500).optional(),
+  warehouseAddress: z.string().max(500).optional(),
+  whatsappNumber: z.string().max(20).optional(),
+  instagramLink: z.string().max(200).optional(),
+  aboutText: z.string().max(5000).optional(),
+  prohibitedItems: z.string().max(5000).optional(),
+  instructionText: z.string().max(5000).optional(),
+});
 
 export async function GET() {
   try {
@@ -19,27 +32,20 @@ export async function PUT(request: NextRequest) {
     const role = request.headers.get("x-user-role");
     if (role !== "ADMIN") return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const data = await request.json();
-
-    const updateData: Record<string, unknown> = {};
-    if (data.exchangeRate !== undefined) updateData.exchangeRate = Number(data.exchangeRate) || 0;
-    if (data.pricePerKg !== undefined) updateData.pricePerKg = Number(data.pricePerKg) || 0;
-    if (data.chinaAddress !== undefined) updateData.chinaAddress = String(data.chinaAddress ?? "");
-    if (data.warehouseAddress !== undefined) updateData.warehouseAddress = String(data.warehouseAddress ?? "");
-    if (data.whatsappNumber !== undefined) updateData.whatsappNumber = String(data.whatsappNumber ?? "");
-    if (data.instagramLink !== undefined) updateData.instagramLink = String(data.instagramLink ?? "");
-    if (data.aboutText !== undefined) updateData.aboutText = String(data.aboutText ?? "");
-    if (data.prohibitedItems !== undefined) updateData.prohibitedItems = String(data.prohibitedItems ?? "");
-    if (data.instructionText !== undefined) updateData.instructionText = String(data.instructionText ?? "");
+    const body = await request.json();
+    const data = updateSettingsSchema.parse(body);
 
     const settings = await prisma.settings.upsert({
       where: { id: "main" },
-      update: updateData,
-      create: { id: "main", ...updateData },
+      update: data,
+      create: { id: "main", ...data },
     });
 
     return NextResponse.json({ settings });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Проверьте данные" }, { status: 400 });
+    }
     console.error("Update settings error:", error);
     return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
   }
